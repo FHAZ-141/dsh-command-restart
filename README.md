@@ -72,6 +72,21 @@ lets the transient unit be garbage-collected once it has run.
    `cordis.patch.yml` is hot-reloaded, but **module code is not** — DSH watches
    the profile manifest and patch files, not module roots.
 
+   This first restart is a chicken-and-egg problem: `/restart` does not exist
+   yet. Use your usual out-of-band method (`systemctl restart dsh-web`, or the
+   equivalent). Every restart after that can go through `/restart` itself.
+
+5. Confirm the plugin actually loaded:
+
+   ```console
+   $ journalctl -u dsh-web --since '-2min' | grep -i 'did not activate'
+   dsh: warning: 1 entry did not activate
+   ```
+
+   Baseline is **one** entry (the inspector warning). If the count went up, one
+   of your entries failed to import — see the pitfalls. `systemctl show` and a
+   successful `/restart status` are the positive check.
+
 No `pnpm add` is needed: DSH maps the installation's `@deepseek-ai/*` packages
 into profile-local plugins through an ESM resolve hook, so declaring them in
 `peerDependencies` is enough.
